@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'recipes_homepage.dart'; // to use the Meal model
+import 'recipes_homepage.dart';
 
 class RecipeDetailPage extends StatelessWidget {
   final Meal meal;
@@ -9,6 +9,7 @@ class RecipeDetailPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: const Color(0xFFFEFEFE),
       appBar: AppBar(
         backgroundColor: Colors.orange,
         title: Text(
@@ -19,27 +20,24 @@ class RecipeDetailPage extends StatelessWidget {
           ),
         ),
       ),
+
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.network(meal.image, fit: BoxFit.cover),
+              child: Image.network(meal.image),
             ),
             const SizedBox(height: 20),
             const Text(
               'Instructions',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             Text(
               meal.instructions,
-              style: const TextStyle(fontSize: 16, height: 1.5),
+              style: const TextStyle(fontSize: 18, height: 1.4),
             ),
           ],
         ),
@@ -47,3 +45,6 @@ class RecipeDetailPage extends StatelessWidget {
     );
   }
 }
+
+
+
