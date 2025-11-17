@@ -28,14 +28,24 @@ class RecipeDetailPage extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(12),
-              child: Image.network(meal.image),
+              child: Image.network(
+                meal.image.isEmpty
+                    ? 'https://via.placeholder.com/300'
+                    : meal.image,
+                errorBuilder: (_, __, ___) =>
+                const Icon(Icons.image_not_supported, size: 120),
+              ),
             ),
+
             const SizedBox(height: 20),
+
             const Text(
               'Instructions',
               style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
+
             const SizedBox(height: 10),
+
             Text(
               meal.instructions,
               style: const TextStyle(fontSize: 18, height: 1.4),
@@ -46,6 +56,7 @@ class RecipeDetailPage extends StatelessWidget {
     );
   }
 }
+
 
 
 

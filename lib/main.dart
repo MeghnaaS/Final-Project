@@ -10,7 +10,8 @@ import 'create_account_page.dart';
 
 void main() {
   runApp(
-    const ProviderScope( // gives the entire app access to all the riverpod providers so they work
+    const ProviderScope(
+      // gives the entire app access to all the riverpod providers so they work
       child: MyApp(),
     ),
   );
@@ -21,7 +22,7 @@ class MyApp extends StatelessWidget {
 
   // router
   static final GoRouter _router = GoRouter(
-    initialLocation: '/',
+    initialLocation: '/', // starting screen
     routes: [
       GoRoute(
         path: '/',
@@ -62,6 +63,8 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
+
 
 
 

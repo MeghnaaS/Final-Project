@@ -30,9 +30,9 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
           actions: [
             TextButton(
               child: const Text(
-                  'Cancel',
+                'Cancel',
                 style: TextStyle(
-                  color: Color(0xFF2A5A1E)
+                    color: Color(0xFF2A5A1E)
                 ),
               ),
               onPressed: () => Navigator.pop(dialogCtx), // closes the popup
@@ -49,11 +49,11 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                 // if it's user created then it delete from DB and memory
                 if (user != null && UserRecipesStore.userRecipes.contains(meal)) {
                   await AppDatabase.deleteUserRecipe(user['id'], meal.name);
-                  UserRecipesStore.userRecipes.removeWhere((meal) => meal.name == meal.name);
+                  UserRecipesStore.userRecipes.removeWhere((m) => m.name == meal.name);
                 }
 
                 // removes from favorites
-                FavoritesStore.favorites.removeWhere((meal) => meal.name == meal.name);
+                FavoritesStore.favorites.removeWhere((m) => m.name == meal.name);
 
                 // updates the favorite names provider
                 ref.read(favoriteNamesProvider.notifier).state = FavoritesStore.favorites.map((m) => m.name).toList();
@@ -62,7 +62,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                 if (user != null) {
                   await AppDatabase.updateFavorites(
                     user['id'],
-                    FavoritesStore.favorites.map((meal) => meal.name).toList(),
+                    FavoritesStore.favorites.map((m) => m.name).toList(),
                   );
                 }
 
@@ -124,7 +124,9 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
               leading: ClipRRect(
                 borderRadius: BorderRadius.circular(8),
                 child: Image.network(
-                  meal.image,
+                  meal.image.isEmpty
+                      ? 'https://via.placeholder.com/300'
+                      : meal.image,
                   width: 60,
                   height: 60,
                   fit: BoxFit.cover,
@@ -134,7 +136,7 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
               title: Text(
                 meal.name,
                 style: const TextStyle(
-                    fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
               subtitle: Row(
@@ -145,18 +147,20 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                     children: [
                       IconButton(
                         icon: const Icon(
-                            Icons.favorite,
-                            color: Colors.red,
+                          Icons.favorite,
+                          color: Colors.red,
                         ),
                         onPressed: () async {
-                          FavoritesStore.favorites.removeWhere((meal) => meal.name == meal.name);
+                          FavoritesStore.favorites.removeWhere((m) => m.name == meal.name);
+
                           //gets all the favorites meals and takes their names and turns into a list of strings and then updates riverpod with that list
-                          ref.read(favoriteNamesProvider.notifier).state = FavoritesStore.favorites.map((meal) => meal.name).toList();
+                          ref.read(favoriteNamesProvider.notifier).state =
+                              FavoritesStore.favorites.map((m) => m.name).toList();
 
                           if (user != null) {
                             await AppDatabase.updateFavorites(
                               user['id'],
-                              FavoritesStore.favorites.map((meal) => meal.name).toList(),
+                              FavoritesStore.favorites.map((m) => m.name).toList(),
                             );
                           }
                           setState(() {});
@@ -167,8 +171,8 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                       if (isUserRecipe)
                         IconButton(
                           icon: const Icon(
-                              Icons.delete,
-                              color: Colors.black54,
+                            Icons.delete,
+                            color: Colors.black54,
                           ),
                           onPressed: () => _showDeleteConfirm(meal),
                         ),
@@ -199,8 +203,8 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
             ),
             IconButton(
               icon: const Icon(Icons.logout,
-                  color: Colors.white,
-                  size: 30,
+                color: Colors.white,
+                size: 30,
               ),
               onPressed: () => context.go('/'),
             ),
@@ -210,6 +214,8 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
     );
   }
 }
+
+
 
 
 

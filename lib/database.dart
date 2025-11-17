@@ -19,14 +19,19 @@ class AppDatabase {
     sqfliteFfiInit(); // starts the FFI version of SQLite (for windows)
     databaseFactory = databaseFactoryFfi; // switches flutter to the desktop database engine rather than the mobile one
 
-    Directory folder = await getApplicationCacheDirectory(); // finds a safe folder for the database
-    String path = join(folder.path, 'app_database_v3.db'); // creates the full file path where the database will be stored
+    Directory folder = await getApplicationSupportDirectory();
+    // changed from cache to support dir bc windows deletes cache sometimes
 
-    database = await databaseFactory.openDatabase( // if it exists it opens it, if it doesn't exist it creates it
-      path, // where to store the file
+    String path = join(folder.path, 'app_database_v3.db');
+    // creates the full file path where the database will be stored
+
+    database = await databaseFactory.openDatabase(
+      // if it exists it opens it, if it doesn't exist it creates it
+      path,
       options: OpenDatabaseOptions(
         version: 3,
-        onCreate: (db, version) async { // this only runs the first time the database is created and its where the tables are defined
+        onCreate: (db, version) async {
+          // this only runs the first time the database is created and its where the tables are defined
           await db.execute('''
             CREATE TABLE users (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -37,8 +42,22 @@ class AppDatabase {
               favorites TEXT
             )
           ''');
+
           await db.execute('''
             CREATE TABLE user_recipes (
+              id INTEGER PRIMARY KEY AUTOINCREMENT,
+              userId INTEGER,
+              name TEXT,
+              image TEXT,
+              instructions TEXT
+            )
+          ''');
+        },
+
+        // added so if database already exists but table doesn't, it still gets created
+        onUpgrade: (db, oldVersion, newVersion) async {
+          await db.execute('''
+            CREATE TABLE IF NOT EXISTS user_recipes (
               id INTEGER PRIMARY KEY AUTOINCREMENT,
               userId INTEGER,
               name TEXT,
@@ -53,54 +72,65 @@ class AppDatabase {
     return database!;
   }
 
-  static Future<void> createUser( // its async and doesn't return anything
+  static Future<void> createUser(
+      // its async and doesn't return anything
       String firstName,
       String lastName,
       String email,
       String password,
       ) async {
-    final db = await getDatabase(); // makes sure the database is open and uses it if it is or opens it
+    final db = await getDatabase();
+    // makes sure the database is open and uses it if it is or opens it
 
-    await db.insert( // it inserts a new row in the users table for each thingy
-      'users', {
-        'firstName': firstName,
-        'lastName': lastName,
-        'email': email,
-        'password': password,
-        'favorites': jsonEncode([]), // this stores strings not lists, so you put a empty list into json so that each user has their own favorites list
+    await db.insert(
+      // it inserts a new row in the users table for each thingy
+        'users', {
+      'firstName': firstName,
+      'lastName': lastName,
+      'email': email,
+      'password': password,
+      'favorites': jsonEncode([]),
+      // this stores strings not lists, so you put a empty list into json so that each user has their own favorites list
     });
   }
 
   static Future<Map<String, dynamic>?> loginUser(
-      String email, String password) async { // takes email and password as inputs
+      String email, String password) async {
+    // takes email and password as inputs
     final db = await getDatabase();
 
-    final result = await db.query( // searches for email and password in the database
+    final result = await db.query(
+      // searches for email and password in the database
       'users',
       where: 'email = ? AND password = ?',
       whereArgs: [email, password],
     );
 
-    if (result.isNotEmpty) return result.first; // gets the things inside the first row the results match with
+    if (result.isNotEmpty) return result.first;
+    // gets the things inside the first row the results match with
     return null;
   }
 
   static Future<void> updateFavorites(
-      int userId, List<String> favoritesList) async { // takes a users id and the updated favorites
+      int userId, List<String> favoritesList) async {
+    // takes a users id and the updated favorites
     final db = await getDatabase();
 
     await db.update(
       'users', // updates the users table
-      {'favorites': jsonEncode(favoritesList)}, // sets the favs column to a json string version of the favs list
+      {'favorites': jsonEncode(favoritesList)},
+      // sets the favs column to a json string version of the favs list
       where: 'id = ?',
       whereArgs: [userId], // only updates the row where id = userId
     );
   }
 
-  static Future<List<String>> getFavorites(int userId) async { // returns a user's favorites as a list of strings
+  static Future<List<String>> getFavorites(int userId) async {
+    // returns a user's favorites as a list of strings
     final db = await getDatabase();
 
-    final result = await db.query( // gets only the favs column from users row
+    final result = await db.query(
+      // gets only the favs column from users row
       'users',
       columns: ['favorites'],
       where: 'id = ?',
@@ -110,11 +140,14 @@ class AppDatabase {
     if (result.isEmpty) return []; // no user, return empty list
 
     // gets the raw json string if its null then it default to a empty list
-    final raw = result.first['favorites'] as String? ?? '[]'; // sqlite can store dart lists only text so it get saved as json text, not a real list
-    return List<String>.from(jsonDecode(raw)); // turns json string into real list of strings
+    final raw = result.first['favorites'] as String? ?? '[]';
+    // sqlite can store dart lists only text so it get saved as json text, not a real list
+    return List<String>.from(jsonDecode(raw));
+    // turns json string into real list of strings
   }
 
-  static Future<void> addUserRecipe( // defines a function that will add one recipe to the database for a specific user
+  static Future<void> addUserRecipe(
+      // defines a function that will add one recipe to the database for a specific user
       int userId,
       String name,
       String image,
@@ -122,18 +155,22 @@ class AppDatabase {
       ) async {
     final db = await getDatabase();
 
-    await db.insert('user_recipes', { // adds a new line into the table with all these values
+    await db.insert('user_recipes', {
+      // adds a new line into the table with all these values
       'userId': userId,
       'name': name,
       'image': image,
       'instructions': instructions,
     });
   }
+
   //Future<List<Map<String the result is a list of rows from the database and each map has key string, and a dynamic value
-  static Future<List<Map<String, dynamic>>> getUserRecipes(int userId) async { // gets all the recipes that a specific user created
+  static Future<List<Map<String, dynamic>>> getUserRecipes(int userId) async {
+    // gets all the recipes that a specific user created
     final db = await getDatabase();
 
-    return await db.query( // shows all the recipes the user created
+    return await db.query(
+      // shows all the recipes the user created
       'user_recipes',
       where: 'userId = ?',
       whereArgs: [userId],
@@ -141,7 +178,8 @@ class AppDatabase {
   }
 
   // void bc deleting doesn't give back results
-  static Future<void> deleteUserRecipe(int userId, String name) async { // deletes a recipe from the database for a specific user
+  static Future<void> deleteUserRecipe(int userId, String name) async {
+    // deletes a recipe from the database for a specific user
     final db = await getDatabase();
 
     await db.delete(
@@ -151,6 +189,8 @@ class AppDatabase {
     );
   }
 }
+
+
 
 
 

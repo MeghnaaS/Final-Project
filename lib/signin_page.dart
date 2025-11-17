@@ -7,9 +7,6 @@ import 'store_user_recipes.dart';
 import 'recipes_homepage.dart';
 import 'dart:math';
 
-
-
-
 class SigninPage extends ConsumerStatefulWidget {
   const SigninPage({super.key});
 
@@ -101,13 +98,19 @@ class _SigninPageState extends ConsumerState<SigninPage> {
                       final favNames = await AppDatabase.getFavorites(user['id']);
                       ref.read(favoriteNamesProvider.notifier).state = favNames;
 
-                      final userRecipeRows = await AppDatabase.getUserRecipes(user['id']); // gets all the recipes the user created
-                      UserRecipesStore.userRecipes = userRecipeRows.map((r) { // converts each row into a proper meal object
+                      final userRecipeRows = await AppDatabase.getUserRecipes(user['id']);
+                      // gets all the recipes the user created
+
+                      UserRecipesStore.userRecipes = userRecipeRows.map((r) {
+                        // converts each row into a proper meal object
                         return Meal(
                           r['name'],
-                          r['image'] ?? '',
+                          (r['image'] ?? '').isEmpty
+                              ? 'https://via.placeholder.com/300'
+                              : r['image'],
                           r['instructions'] ?? '',
-                          double.parse((Random().nextDouble() * 5).toStringAsFixed(1)), // random rating generator
+                          double.parse((Random().nextDouble() * 5).toStringAsFixed(1)),
+                          // random rating generator
                         );
                       }).toList();
 
@@ -150,6 +153,8 @@ class _SigninPageState extends ConsumerState<SigninPage> {
     );
   }
 }
+
+
 
 
 

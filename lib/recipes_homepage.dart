@@ -65,7 +65,7 @@ class _RecipesHomepageState extends ConsumerState<RecipesHomepage> {
     final user = ref.read(loggedInUser); // gets the currently logged in user from riverpod
     if (user == null) return;
 
-    final names = FavoritesStore.favorites.map((meal) => meal.name).toList(); // takes the list of meal objects and gets the recipes names and turns them into a list of strings
+    final names = FavoritesStore.favorites.map((m) => m.name).toList(); // takes the list of meal objects and gets the recipes names and turns them into a list of strings
     await AppDatabase.updateFavorites(user['id'], names);
   }
 
@@ -113,7 +113,7 @@ class _RecipesHomepageState extends ConsumerState<RecipesHomepage> {
           actions: [
             TextButton(
               child: const Text(
-                  'Cancel',
+                'Cancel',
                 style: TextStyle(
                   color: Color(0xFF2A5A1E),
                 ),
@@ -124,9 +124,9 @@ class _RecipesHomepageState extends ConsumerState<RecipesHomepage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color(0xFF2A5A1E),
                 foregroundColor: Colors.white,
-                ),
+              ),
               child: const Text(
-                  'Add',
+                'Add',
                 style: TextStyle(
                   color: Colors.white,
                 ),
@@ -148,11 +148,16 @@ class _RecipesHomepageState extends ConsumerState<RecipesHomepage> {
                   );
                 }
 
+                // FIX: placeholder for blank images
+                final finalImage = image.text.trim().isEmpty
+                    ? 'https://via.placeholder.com/300'
+                    : image.text.trim();
+
                 // this lets it show up on the homepage, favorites (if the user saves it), and stays in the memory
                 UserRecipesStore.userRecipes.add( // adds a new meal object into the list that stores all the recipes the user created
                   Meal(
                     name.text.trim(),
-                    image.text.trim(),
+                    finalImage,
                     instructions.text.trim(),
                     double.parse((Random().nextDouble() * 5).toStringAsFixed(1)),
                   ),
@@ -167,6 +172,7 @@ class _RecipesHomepageState extends ConsumerState<RecipesHomepage> {
       },
     );
   }
+
   void _showDeleteConfirm(Meal meal) {
     showDialog(
       context: context,
@@ -177,7 +183,7 @@ class _RecipesHomepageState extends ConsumerState<RecipesHomepage> {
           actions: [
             TextButton(
               child: const Text(
-                  'Cancel',
+                'Cancel',
                 style: TextStyle(
                   color: Color(0xFF2A5A1E),
                 ),
@@ -190,7 +196,7 @@ class _RecipesHomepageState extends ConsumerState<RecipesHomepage> {
                 foregroundColor: Colors.white,
               ),
               child: const Text(
-                  'Delete',
+                'Delete',
                 style: TextStyle(
                   color: Colors.white,
                 ),
@@ -204,12 +210,12 @@ class _RecipesHomepageState extends ConsumerState<RecipesHomepage> {
                 }
 
                 // deletes locally
-                UserRecipesStore.userRecipes.removeWhere((meal) => meal.name == meal.name);
+                UserRecipesStore.userRecipes.removeWhere((m) => m.name == meal.name);
 
                 // deletes from favorites
-                FavoritesStore.favorites.removeWhere((meal) => meal.name == meal.name);
+                FavoritesStore.favorites.removeWhere((m) => m.name == meal.name);
 
-                ref.read(favoriteNamesProvider.notifier).state = FavoritesStore.favorites.map((meal) => meal.name).toList();
+                ref.read(favoriteNamesProvider.notifier).state = FavoritesStore.favorites.map((m) => m.name).toList();
 
                 await saveFavorites();
 
@@ -288,7 +294,7 @@ class _RecipesHomepageState extends ConsumerState<RecipesHomepage> {
                   itemCount: allMeals.length,
                   itemBuilder: (context, index) {
                     final meal = allMeals[index];
-                    final isFav = FavoritesStore.favorites.any((meal) => meal.name == meal.name);
+                    final isFav = FavoritesStore.favorites.any((m) => m.name == meal.name);
 
                     return Card(
                       shape: RoundedRectangleBorder(
@@ -300,7 +306,9 @@ class _RecipesHomepageState extends ConsumerState<RecipesHomepage> {
                         leading: ClipRRect(
                           borderRadius: BorderRadius.circular(8),
                           child: Image.network(
-                            meal.image,
+                            meal.image.isEmpty
+                                ? 'https://via.placeholder.com/300'
+                                : meal.image,
                             width: 60,
                             height: 60,
                             fit: BoxFit.cover,
@@ -331,14 +339,14 @@ class _RecipesHomepageState extends ConsumerState<RecipesHomepage> {
                                   onPressed: () async {
                                     setState(() {
                                       if (isFav) {
-                                        FavoritesStore.favorites.removeWhere((meal) => meal.name == meal.name);
+                                        FavoritesStore.favorites.removeWhere((m) => m.name == meal.name);
                                       } else {
                                         FavoritesStore.favorites.add(meal);
                                       }
                                     });
 
                                     ref.read(favoriteNamesProvider.notifier).state =
-                                        FavoritesStore.favorites.map((meal) => meal.name).toList();
+                                        FavoritesStore.favorites.map((m) => m.name).toList();
 
                                     await saveFavorites();
                                   },
@@ -379,9 +387,9 @@ class _RecipesHomepageState extends ConsumerState<RecipesHomepage> {
       floatingActionButton: FloatingActionButton(
         backgroundColor: const Color(0xFF7EA228),
         child: const Icon(
-            Icons.add,
-            color: Colors.white,
-            size: 32,
+          Icons.add,
+          color: Colors.white,
+          size: 32,
         ),
         onPressed: _showAddRecipeDialog,
       ),
@@ -414,6 +422,7 @@ class _RecipesHomepageState extends ConsumerState<RecipesHomepage> {
     );
   }
 }
+
 
 
 
