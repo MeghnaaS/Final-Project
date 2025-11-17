@@ -129,17 +129,19 @@ class AppDatabase {
       'instructions': instructions,
     });
   }
-
-  static Future<List<Map<String, dynamic>>> getUserRecipes(int userId) async {
+  //Future<List<Map<String the result is a list of rows from the database and each map has key string, and a dynamic value
+  static Future<List<Map<String, dynamic>>> getUserRecipes(int userId) async { // gets all the recipes that a specific user created
     final db = await getDatabase();
 
-    return await db.query(
+    return await db.query( // shows all the recipes the user created
       'user_recipes',
       where: 'userId = ?',
       whereArgs: [userId],
     );
   }
-  static Future<void> deleteUserRecipe(int userId, String name) async {
+
+  // void bc deleting doesn't give back results
+  static Future<void> deleteUserRecipe(int userId, String name) async { // deletes a recipe from the database for a specific user
     final db = await getDatabase();
 
     await db.delete(

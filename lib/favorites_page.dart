@@ -15,59 +15,59 @@ class FavoritesPage extends ConsumerStatefulWidget {
 }
 
 class _FavoritesPageState extends ConsumerState<FavoritesPage> {
-  // ----------------------------------------------------------
-  // DELETE CONFIRMATION POPUP
-  // ----------------------------------------------------------
-  void _showDeleteConfirm(Meal meal) {
+
+  // the popup that confirms if the user wants to def delete it
+  void _showDeleteConfirm(Meal meal) { // Meal is the type and meal is the variable name
     showDialog(
-      context: context,
+      context: context, // makes the current page screen show the dialog
       builder: (dialogCtx) {
         return AlertDialog(
           title: const Text(
-            "Delete Recipe?",
+            'Delete Recipe?',
             style: TextStyle(fontWeight: FontWeight.bold),
           ),
-          content: Text("Are you sure you want to delete '${meal.name}'?"),
+          content: Text('Are you sure you want to delete ${meal.name}?'),
           actions: [
             TextButton(
-              child: const Text("Cancel"),
-              onPressed: () => Navigator.pop(dialogCtx),
+              child: const Text(
+                  'Cancel',
+                style: TextStyle(
+                  color: Color(0xFF2A5A1E)
+                ),
+              ),
+              onPressed: () => Navigator.pop(dialogCtx), // closes the popup
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: Color(0xFF2A5A1E),
                 foregroundColor: Colors.white,
               ),
-              child: const Text("Delete"),
+              child: const Text('Delete'),
               onPressed: () async {
-                final user = ref.read(loggedInUser);
+                final user = ref.read(loggedInUser); // grabs info abt who's signed in rn
 
-                // If it's user-created → delete from DB + memory
-                if (user != null &&
-                    UserRecipesStore.userRecipes.contains(meal)) {
+                // if it's user created then it delete from DB and memory
+                if (user != null && UserRecipesStore.userRecipes.contains(meal)) {
                   await AppDatabase.deleteUserRecipe(user['id'], meal.name);
-                  UserRecipesStore.userRecipes
-                      .removeWhere((m) => m.name == meal.name);
+                  UserRecipesStore.userRecipes.removeWhere((meal) => meal.name == meal.name);
                 }
 
-                // Remove from favorites
-                FavoritesStore.favorites
-                    .removeWhere((m) => m.name == meal.name);
+                // removes from favorites
+                FavoritesStore.favorites.removeWhere((meal) => meal.name == meal.name);
 
-                // Update favorite names provider
-                ref.read(favoriteNamesProvider.notifier).state =
-                    FavoritesStore.favorites.map((m) => m.name).toList();
+                // updates the favorite names provider
+                ref.read(favoriteNamesProvider.notifier).state = FavoritesStore.favorites.map((m) => m.name).toList();
 
-                // Save favorites to DB
+                // saves favorites to the database
                 if (user != null) {
                   await AppDatabase.updateFavorites(
                     user['id'],
-                    FavoritesStore.favorites.map((m) => m.name).toList(),
+                    FavoritesStore.favorites.map((meal) => meal.name).toList(),
                   );
                 }
 
-                setState(() {});
-                Navigator.pop(dialogCtx);
+                setState(() {}); // redo's the page with the changes
+                Navigator.pop(dialogCtx); // closes the popup
               },
             ),
           ],
@@ -76,9 +76,6 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
     );
   }
 
-  // ----------------------------------------------------------
-  // PAGE BUILD
-  // ----------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     final favs = FavoritesStore.favorites;
@@ -131,56 +128,48 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
                   width: 60,
                   height: 60,
                   fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) =>
-                  const Icon(Icons.image_not_supported),
+                  errorBuilder: (_, __, ___) => const Icon(Icons.image_not_supported),
                 ),
               ),
-
               title: Text(
                 meal.name,
-                style: const TextStyle(fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                ),
               ),
-
               subtitle: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text('⭐ ${meal.rating}/5'),
-
                   Row(
                     children: [
-                      // ❤️ UNFAVORITE
                       IconButton(
-                        icon: const Icon(Icons.favorite,
-                            color: Colors.red),
+                        icon: const Icon(
+                            Icons.favorite,
+                            color: Colors.red,
+                        ),
                         onPressed: () async {
-                          FavoritesStore.favorites.removeWhere(
-                                  (m) => m.name == meal.name);
-
-                          ref
-                              .read(favoriteNamesProvider.notifier)
-                              .state =
-                              FavoritesStore.favorites
-                                  .map((m) => m.name)
-                                  .toList();
+                          FavoritesStore.favorites.removeWhere((meal) => meal.name == meal.name);
+                          //gets all the favorites meals and takes their names and turns into a list of strings and then updates riverpod with that list
+                          ref.read(favoriteNamesProvider.notifier).state = FavoritesStore.favorites.map((meal) => meal.name).toList();
 
                           if (user != null) {
                             await AppDatabase.updateFavorites(
                               user['id'],
-                              FavoritesStore.favorites
-                                  .map((m) => m.name)
-                                  .toList(),
+                              FavoritesStore.favorites.map((meal) => meal.name).toList(),
                             );
                           }
-
                           setState(() {});
                         },
                       ),
 
-                      // 🗑 DELETE ONLY IF USER-CREATED
+                      // delete for user created recipes
                       if (isUserRecipe)
                         IconButton(
-                          icon: const Icon(Icons.delete,
-                              color: Colors.black54),
+                          icon: const Icon(
+                              Icons.delete,
+                              color: Colors.black54,
+                          ),
                           onPressed: () => _showDeleteConfirm(meal),
                         ),
                     ],
@@ -201,12 +190,18 @@ class _FavoritesPageState extends ConsumerState<FavoritesPage> {
           children: [
             IconButton(
               icon:
-              const Icon(Icons.home, color: Colors.white, size: 30),
+              const Icon(
+                  Icons.home,
+                  color: Colors.white,
+                  size: 30
+              ),
               onPressed: () => context.go('/recipes'),
             ),
             IconButton(
-              icon: const Icon(Icons.exit_to_app,
-                  color: Colors.white, size: 30),
+              icon: const Icon(Icons.logout,
+                  color: Colors.white,
+                  size: 30,
+              ),
               onPressed: () => context.go('/'),
             ),
           ],

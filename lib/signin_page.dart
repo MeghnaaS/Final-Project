@@ -5,6 +5,9 @@ import 'user_state.dart';
 import 'package:go_router/go_router.dart';
 import 'store_user_recipes.dart';
 import 'recipes_homepage.dart';
+import 'dart:math';
+
+
 
 
 class SigninPage extends ConsumerStatefulWidget {
@@ -81,6 +84,7 @@ class _SigninPageState extends ConsumerState<SigninPage> {
 
               const SizedBox(height: 30),
 
+              // sign in button
               SizedBox(
                 width: 200,
                 height: 50,
@@ -97,16 +101,15 @@ class _SigninPageState extends ConsumerState<SigninPage> {
                       final favNames = await AppDatabase.getFavorites(user['id']);
                       ref.read(favoriteNamesProvider.notifier).state = favNames;
 
-                      final userRecipeRows = await AppDatabase.getUserRecipes(user['id']);
-                      UserRecipesStore.userRecipes = userRecipeRows.map((r) {
+                      final userRecipeRows = await AppDatabase.getUserRecipes(user['id']); // gets all the recipes the user created
+                      UserRecipesStore.userRecipes = userRecipeRows.map((r) { // converts each row into a proper meal object
                         return Meal(
                           r['name'],
                           r['image'] ?? '',
                           r['instructions'] ?? '',
-                          4.5, // you can generate random or default rating
+                          double.parse((Random().nextDouble() * 5).toStringAsFixed(1)), // random rating generator
                         );
                       }).toList();
-
 
                       context.go('/recipes');
                     } else {
