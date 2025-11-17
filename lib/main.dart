@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-
-// Pages
 import 'signin_page.dart';
 import 'recipes_homepage.dart';
 import 'recipe_detail_page.dart';
@@ -12,7 +10,7 @@ import 'create_account_page.dart';
 
 void main() {
   runApp(
-    const ProviderScope(
+    const ProviderScope( // gives the entire app access to all the riverpod providers so they work
       child: MyApp(),
     ),
   );
@@ -21,9 +19,9 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // ✨ Router setup
+  // router
   static final GoRouter _router = GoRouter(
-    initialLocation: '/',   // default starting page
+    initialLocation: '/',
     routes: [
       GoRoute(
         path: '/',
@@ -44,6 +42,8 @@ class MyApp extends StatelessWidget {
       GoRoute(
         path: '/detail',
         builder: (context, state) {
+          // state.extra takes whatever data that's passed when navigating
+          // extra is a way to send data directly to a route when navigating, so the new page knows what to display
           final meal = state.extra as Meal;
           return RecipeDetailPage(meal: meal);
         },
@@ -55,7 +55,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp.router(
       debugShowCheckedModeBanner: false,
-      routerConfig: _router,
+      routerConfig: _router, // tells it to use go router for all navigation
       theme: ThemeData(
         scaffoldBackgroundColor: const Color(0xFFFEFEFE),
       ),

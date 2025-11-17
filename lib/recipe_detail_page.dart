@@ -19,6 +19,7 @@ class RecipeDetailPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        centerTitle: true,
       ),
 
       body: SingleChildScrollView(

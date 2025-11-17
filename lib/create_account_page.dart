@@ -4,16 +4,16 @@ import 'database.dart';
 import 'user_state.dart';
 import 'package:go_router/go_router.dart';
 
+
+// consumer lets it use riverpod's ref to watch providers but also still works as a stateful widget
 class CreateNewAccountPage extends ConsumerStatefulWidget {
   const CreateNewAccountPage({super.key});
 
   @override
-  ConsumerState<CreateNewAccountPage> createState() =>
-      _CreateNewAccountPageState();
+  ConsumerState<CreateNewAccountPage> createState() => _CreateNewAccountPageState();
 }
 
-class _CreateNewAccountPageState
-    extends ConsumerState<CreateNewAccountPage> {
+class _CreateNewAccountPageState extends ConsumerState<CreateNewAccountPage> {
   final firstController = TextEditingController();
   final lastController = TextEditingController();
   final emailController = TextEditingController();
@@ -55,6 +55,7 @@ class _CreateNewAccountPageState
 
               const SizedBox(height: 25),
 
+              // user input fields
               SizedBox(
                 width: 400,
                 child: TextField(
@@ -108,17 +109,19 @@ class _CreateNewAccountPageState
 
               const SizedBox(height: 30),
 
+              // button
               SizedBox(
                 width: 200,
                 height: 50,
                 child: ElevatedButton(
                   onPressed: () async {
+                    // trim gets rid of the extra spaces at the beginning and end
                     String first = firstController.text.trim();
                     String last = lastController.text.trim();
                     String email = emailController.text.trim();
                     String password = passwordController.text.trim();
 
-                    // Check all fields filled
+                    // check if all the fields are filled or not
                     if (first.isEmpty || last.isEmpty || email.isEmpty || password.isEmpty) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -129,12 +132,12 @@ class _CreateNewAccountPageState
                       return;
                     }
 
-                    // Check if email already exists
+                    // checks if the email already exists
                     final db = await AppDatabase.getDatabase();
-                    final existing = await db.query(
-                      'users',
-                      where: 'email = ?',
-                      whereArgs: [email],
+                    final existing = await db.query( // says to search the database
+                      'users', // for the users table
+                      where: 'email = ?', // and to look at the email section and match users with a specific email
+                      whereArgs: [email], // fills in the ? and replaces it with the actual email
                     );
 
                     if (existing.isNotEmpty) {
@@ -147,17 +150,21 @@ class _CreateNewAccountPageState
                       return;
                     }
 
-                    // Create new user
+                    // creates new user
                     await AppDatabase.createUser(first, last, email, password);
 
-                    // Log in new user immediately
+                    // logs in the new user immediately
                     final user = await AppDatabase.loginUser(email, password);
 
                     if (user != null) {
+                      // logged in user is a riverpod state provider
+                      // notifier lets us change the value the provider currently has
+                      // state stores the current logged-in user in the provider
                       ref.read(loggedInUser.notifier).state = user;
+                      // this resets the user's list of favorite recipe names
                       ref.read(favoriteNamesProvider.notifier).state = [];
-
                       context.go('/recipes');
+
                     } else {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(

@@ -3,6 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'database.dart';
 import 'user_state.dart';
 import 'package:go_router/go_router.dart';
+import 'store_user_recipes.dart';
+import 'recipes_homepage.dart';
+
 
 class SigninPage extends ConsumerStatefulWidget {
   const SigninPage({super.key});
@@ -91,10 +94,19 @@ class _SigninPageState extends ConsumerState<SigninPage> {
                     if (user != null) {
                       ref.read(loggedInUser.notifier).state = user;
 
-                      final favNames =
-                      await AppDatabase.getFavorites(user['id']);
-                      ref.read(favoriteNamesProvider.notifier).state =
-                          favNames;
+                      final favNames = await AppDatabase.getFavorites(user['id']);
+                      ref.read(favoriteNamesProvider.notifier).state = favNames;
+
+                      final userRecipeRows = await AppDatabase.getUserRecipes(user['id']);
+                      UserRecipesStore.userRecipes = userRecipeRows.map((r) {
+                        return Meal(
+                          r['name'],
+                          r['image'] ?? '',
+                          r['instructions'] ?? '',
+                          4.5, // you can generate random or default rating
+                        );
+                      }).toList();
+
 
                       context.go('/recipes');
                     } else {
